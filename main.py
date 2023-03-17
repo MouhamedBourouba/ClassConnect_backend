@@ -24,9 +24,11 @@ def send_email(to_email, message, email_subject):
     try:
         server.starttls(context=context)
         server.login(sender_email, email_password)
-        server.sendmail(sender_email, to_email, msg.as_string())
-    except Exception as e:
-        print(e)
+        server.send_message(msg)
+    except smtplib.SMTPAuthenticationError:
+        abort(401, 'SMTP authentication error. Please check your email and try again.')
+    except Exception:
+        abort(500, 'Failed to send email. Please check your email and try again.')
     finally:
         server.quit()
 
@@ -52,7 +54,8 @@ def email_conformation(toemail, email_message, email_subject):
         send_email(to_email=toemail, message=message, email_subject=email_subject)
         return jsonify(code)
     else:
-        abort(code=500)
+        abort(500, f'Email email is badly formatted')
 
 
-app.run(host="0.0.0.0", port=8080)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=8080)
